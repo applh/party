@@ -33,19 +33,21 @@ if (!function_exists('party_curl')) {
       // Création d'une nouvelle ressource cURL
       $ch = curl_init();
 
-      // Configuration de l'URL et d'autres options
+      // Configuration of URL and other options
       $options = array(
          CURLOPT_URL => $src_url,
          CURLOPT_HEADER => false,
          CURLOPT_RETURNTRANSFER => true,
+         CURLOPT_FOLLOWLOCATION => true,
+         CURLOPT_POSTFIELDS => $_REQUEST,
       );
 
       curl_setopt_array($ch, $options);
 
-      // Récupération de l'URL et affichage sur le naviguateur
+      // get URL content
       $result=curl_exec($ch);
 
-      // Fermeture de la session cURL
+      // end of CURL session
       curl_close($ch);
 
       
