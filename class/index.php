@@ -50,6 +50,15 @@ if (!function_exists('party_curl')) {
 
       
       if (stripos($headers['Accept'], "text/") !== FALSE) {
+
+         $translate=array();
+         $translate[$src2url2domain]="http://".$_SERVER['SERVER_NAME'];
+
+         $from=array_keys($translate);
+         $to=array_values($translate);
+
+         $result=str_replace($from, $to, $result);
+
          if (!empty($request2ext)) {
             switch ($request2ext) {
                case 'txt':
