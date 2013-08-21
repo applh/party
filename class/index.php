@@ -10,13 +10,38 @@ if (!is_array($Party)) {
    $Party['party.cache.maxsize']=51200;
    $Party['party.cache.maxtime']=3600;
 
+   $Party['party.debug']=0;
+
    // USER CONFIG
    $Party['hosting']='ovh';
    $Party['src.url.domain']='http://applh.com';
 }
 
+if (!function_exists('party_debug')) {
+   function party_debug ($msg, $level=5) {
+      global $Party;
+      if ($level < $Party['party.debug']) {
+         $now=time();
+         echo "[$now][$msg]";
+      }
+   }
+}
+
+if (!function_exists('apache_request_headers')) {
+   function apache_request_headers() {
+      foreach($_SERVER as $key=>$value) {
+         if (substr($key,0,5)=="HTTP_") {
+            $key=str_replace(" ","-",ucwords(strtolower(str_replace("_"," ",substr($key,5)))));
+            $out[$key]=$value;
+         }
+      }
+      return $out;
+   } 
+}
+
 if (!function_exists('party_curl')) {
    function party_curl () {
+
       global $Party;
 
       // FIXME
@@ -84,36 +109,42 @@ if (!function_exists('party_curl')) {
       else {
          // Création d'une nouvelle ressource cURL
          $ch = curl_init();
+         
+         if ($ch !== FALSE) {
+            // Configuration of URL and other options
+            $options = array(
+               CURLOPT_URL => $src_url,
+               CURLOPT_HEADER => false,
+               CURLOPT_RETURNTRANSFER => true,
+               CURLOPT_FOLLOWLOCATION => true,
+               CURLOPT_POSTFIELDS => $_REQUEST,
+            );
 
-         // Configuration of URL and other options
-         $options = array(
-            CURLOPT_URL => $src_url,
-            CURLOPT_HEADER => false,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_POSTFIELDS => $_REQUEST,
-         );
+            curl_setopt_array($ch, $options);
 
-         curl_setopt_array($ch, $options);
+            // get URL content
+            $result=curl_exec($ch);
 
-         // get URL content
-         $result=curl_exec($ch);
-
-         // end of CURL session
-         curl_close($ch);
-
-         // cache data 
-         if (!empty($cache2file)) {
-            if (strlen($result) < $Party['party.cache.maxsize']) {
-               file_put_contents($cache2file, $result);
+            // end of CURL session
+            curl_close($ch);
+            // cache data 
+            if (!empty($cache2file)) {
+               if (strlen($result) < $Party['party.cache.maxsize']) {
+                  file_put_contents($cache2file, $result);
+               }
             }
-         }
-         if (!empty($cache2req)) {
-            if (strlen($cache2req) < $Party['party.cache.maxsize']) {
-               file_put_contents($cache2req, $request2serialize);
+            if (!empty($cache2req)) {
+               if (strlen($cache2req) < $Party['party.cache.maxsize']) {
+                  file_put_contents($cache2req, $request2serialize);
+               }
             }
+ 
          }
-      }
+         else {
+            party_debug('CURL PROBLEM');
+         }
+         
+     }
 
       if (!empty($request2ext)) {
          switch ($request2ext) {
@@ -199,6 +230,7 @@ if (!function_exists('party_curl')) {
    }
 }
 
+
 if (!function_exists('party')) {
    function party () {
       // FIXME
@@ -213,7 +245,6 @@ if (!function_exists('party')) {
 
 
 // DEV
-
 if (!function_exists('party')) {
    function party () {
 
@@ -227,5 +258,6 @@ if (!function_exists('party')) {
 
    }
 }
+
 
 
