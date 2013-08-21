@@ -4,7 +4,7 @@ global $Party;
 if (!is_array($Party)) {
    $Party=array();
 
-   $Party['version']=100;
+   $Party['version']=101;
 
    $Party['party.cache.dir']=$_SERVER['DOCUMENT_ROOT'].'/party-cache-zyz';
    $Party['party.cache.maxsize']=51200;
@@ -117,7 +117,7 @@ if (!function_exists('party_curl')) {
 
       if (!empty($request2ext)) {
          switch ($request2ext) {
-         case 'png':
+            case 'png':
                header("Content-Type:image/png");
                echo $result;
                $request2text=false;
@@ -130,6 +130,11 @@ if (!function_exists('party_curl')) {
                break;
             case 'gif':
                header("Content-Type:image/gif");
+               echo $result;
+               $request2text=false;
+               break;
+            case 'svg':
+               header("Content-Type:image/svg+xml");
                echo $result;
                $request2text=false;
                break;
