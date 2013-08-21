@@ -40,6 +40,8 @@ CHANGELOG
 TO VALIDATE
 =====
 
+* __13/08__
+* Cache only small files (<50Ko)
 * Cache Data for HTML
 * Cache Data for CSS
 * Cache Data for JavaScript
@@ -53,7 +55,6 @@ FIXME
 TODO
 =====
 
-* Cache only small images (<200Ko)
 * Cache Zip text files
 
 

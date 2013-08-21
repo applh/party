@@ -7,6 +7,7 @@ if (!is_array($Party)) {
    $Party['version']=100;
 
    $Party['party.cache.dir']=$_SERVER['DOCUMENT_ROOT'].'/party-cache-zyz';
+   $Party['party.cache.maxsize']=51200;
    $Party['party.cache.maxtime']=3600;
 
    // USER CONFIG
@@ -50,8 +51,10 @@ if (!function_exists('party_curl')) {
       $request2serialize=serialize($src_url)."\n".serialize($_REQUEST);
       $request2md5=md5($request2serialize);
 
-      $request2text=stripos($headers['Accept'], "text/");
+      $request2text=false;
       $request2image=false;
+
+      $request2text=stripos($headers['Accept'], "text/");
       if (!$request2text) {
          $request2image=stripos($headers['Accept'], "image/");
       }
@@ -101,14 +104,41 @@ if (!function_exists('party_curl')) {
 
          // cache data 
          if (!empty($cache2file)) {
-            file_put_contents($cache2file, $result);
+            if (strlen($result) < $Party['party.cache.maxsize']) {
+               file_put_contents($cache2file, $result);
+            }
          }
          if (!empty($cache2req)) {
-            file_put_contents($cache2req, $request2serialize);
+            if (strlen($cache2req) < $Party['party.cache.maxsize']) {
+               file_put_contents($cache2req, $request2serialize);
+            }
          }
       }
 
-      if (stripos($headers['Accept'], "text/") !== FALSE) {
+      if (!empty($request2ext)) {
+         switch ($request2ext) {
+         case 'png':
+               header("Content-Type:image/png");
+               echo $result;
+               $request2text=false;
+               break;
+            case 'jpg':
+            case 'jpeg':
+               header("Content-Type:image/jpeg");
+               echo $result;
+               $request2text=false;
+               break;
+            case 'gif':
+               header("Content-Type:image/gif");
+               echo $result;
+               $request2text=false;
+               break;
+            default:
+               break;
+         }
+      }
+
+      if ($request2text !== false) {
 
          $translate=array();
          $translate[$src2url2domain]="http://".$_SERVER['SERVER_NAME'];
@@ -160,27 +190,6 @@ if (!function_exists('party_curl')) {
             echo $result;
          }
       }
-      else if (stripos($headers['Accept'], "image/") !== FALSE) {
-
-         switch ($request2ext) {
-            case 'png':
-               header("Content-Type:image/png");
-               echo $result;
-               break;
-            case 'jpg':
-            case 'jpeg':
-               header("Content-Type:image/jpeg");
-               echo $result;
-               break;
-            case 'gif':
-               header("Content-Type:image/gif");
-               echo $result;
-               break;
-            default:
-               break;
-         }
-      }
-
 
    }
 }
