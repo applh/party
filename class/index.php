@@ -4,6 +4,8 @@ global $Party;
 if (!is_array($Party)) {
    $Party=array();
    $Party['src.url.domain']='http://applh.com';
+   $Party['party.cache.dir']=$_SERVER['DOCUMENT_ROOT'].'/party-cache-zyz';
+   $Party['party.cache.maxtime']=3600;
 }
 
 if (!function_exists('party_curl')) {
@@ -30,27 +32,61 @@ if (!function_exists('party_curl')) {
 
       $headers = apache_request_headers();
 
-      // Création d'une nouvelle ressource cURL
-      $ch = curl_init();
+      // CACHE HANDLING
+      $request2md5=md5(serialize($src_url).serialize($_REQUEST));
+      $request2text=stripos($headers['Accept'], "text/");
+      $request2image=false;
+      if (!$request2text) {
+         $request2image=stripos($headers['Accept'], "image/");
+      }
 
-      // Configuration of URL and other options
-      $options = array(
-         CURLOPT_URL => $src_url,
-         CURLOPT_HEADER => false,
-         CURLOPT_RETURNTRANSFER => true,
-         CURLOPT_FOLLOWLOCATION => true,
-         CURLOPT_POSTFIELDS => $_REQUEST,
-      );
+      $cache2active=false;
+      $cache2file="";
+      if ($request2text !== FALSE) {
+         $cache2file=$Party['party.cache.dir']."/text/$request2md5.txt";
+      }
+      else if ($request2image !== FALSE) {
+         $cache2file=$Party['party.cache.dir']."/image/$request2md5.png";
+      }
 
-      curl_setopt_array($ch, $options);
+      if (!empty($cache2file) && is_file($cache2file)) {
+         $cache2mtime=filemtime($cache2file);
+         $now=time();
+         $cache2age=($now - $cache2mtime);
+         if ($cache2age < $Party['party.cache.maxtime']) 
+            $cache2active=true;
+      }
 
-      // get URL content
-      $result=curl_exec($ch);
+      if ($cache2active) {
+         $result=file_get_contents($cache2file);
+      }
+      else {
+         // Création d'une nouvelle ressource cURL
+         $ch = curl_init();
 
-      // end of CURL session
-      curl_close($ch);
+         // Configuration of URL and other options
+         $options = array(
+            CURLOPT_URL => $src_url,
+            CURLOPT_HEADER => false,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_POSTFIELDS => $_REQUEST,
+         );
 
-      
+         curl_setopt_array($ch, $options);
+
+         // get URL content
+         $result=curl_exec($ch);
+
+         // end of CURL session
+         curl_close($ch);
+
+         // cache data 
+         if (!empty($cache2file)) {
+            file_put_contents($cache2file, $result);
+         }
+      }
+
       if (stripos($headers['Accept'], "text/") !== FALSE) {
 
          $translate=array();

@@ -23,6 +23,14 @@ WORDPRESS.COM
 * Navigation between pages is transparent to visitors
 * Comments and Contact Forms are working fine
 
+TO VALIDATE
+=====
+
+* Cache Data for HTML
+* Cache Data for CSS
+* Cache Data for JavaScript
+* Cache Data for images
+
 FIXME
 =====
 
@@ -31,8 +39,7 @@ FIXME
 TODO
 =====
 
-* Add data caching for HTML
-* Add data caching for CSS
-* Add data caching for JavaScript
-* Add data caching for small images
+* Cache only small images (<200Ko)
+* Cache Zip text files
+
 
