@@ -169,6 +169,11 @@ if (!function_exists('party_curl')) {
                echo $result;
                $request2text=false;
                break;
+            case 'pdf':
+               header("Content-Type:application/pdf");
+               echo $result;
+               $request2text=false;
+               break;
             default:
                break;
          }
