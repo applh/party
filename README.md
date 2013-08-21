@@ -23,6 +23,20 @@ WORDPRESS.COM
 * Navigation between pages is transparent to visitors
 * Comments and Contact Forms are working fine
 
+CACHE
+=====
+
+* OVH HOSTING SPECIAL: Remove OVH cookies start and startBAK
+
+CHANGELOG
+=====
+
+* __V1.0.0__
+* domain mirror
+* cache text/images
+* DEBUG: cache text request
+* OVH: remove OVH special cookie start and startBAK
+
 TO VALIDATE
 =====
 

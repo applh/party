@@ -3,9 +3,15 @@
 global $Party;
 if (!is_array($Party)) {
    $Party=array();
-   $Party['src.url.domain']='http://applh.com';
+
+   $Party['version']=100;
+
    $Party['party.cache.dir']=$_SERVER['DOCUMENT_ROOT'].'/party-cache-zyz';
    $Party['party.cache.maxtime']=3600;
+
+   // USER CONFIG
+   $Party['hosting']='ovh';
+   $Party['src.url.domain']='http://applh.com';
 }
 
 if (!function_exists('party_curl')) {
@@ -32,8 +38,18 @@ if (!function_exists('party_curl')) {
 
       $headers = apache_request_headers();
 
+      // FIXME
+      // OVH SPECIAL
+      // reset OVH cookies
+      if ($Party['hosting'] == 'ovh') {
+         $_REQUEST['start']='';
+         $_REQUEST['startBAK']='';
+      }
+
       // CACHE HANDLING
-      $request2md5=md5(serialize($src_url).serialize($_REQUEST));
+      $request2serialize=serialize($src_url)."\n".serialize($_REQUEST);
+      $request2md5=md5($request2serialize);
+
       $request2text=stripos($headers['Accept'], "text/");
       $request2image=false;
       if (!$request2text) {
@@ -42,8 +58,10 @@ if (!function_exists('party_curl')) {
 
       $cache2active=false;
       $cache2file="";
+      $cache2req="";
       if ($request2text !== FALSE) {
          $cache2file=$Party['party.cache.dir']."/text/$request2md5.txt";
+         $cache2req=$Party['party.cache.dir']."/text/$request2md5-req.txt";
       }
       else if ($request2image !== FALSE) {
          $cache2file=$Party['party.cache.dir']."/image/$request2md5.png";
@@ -84,6 +102,9 @@ if (!function_exists('party_curl')) {
          // cache data 
          if (!empty($cache2file)) {
             file_put_contents($cache2file, $result);
+         }
+         if (!empty($cache2req)) {
+            file_put_contents($cache2req, $request2serialize);
          }
       }
 
