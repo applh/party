@@ -36,6 +36,9 @@ if ($has2htaccess) {
 }
 
 // CREATE NEW FILES AND FOLDER
+
+// FILES
+
 $cur2file="$docroot/index.php";
 $cur2content=
 <<<CUR2CONTENT
@@ -81,6 +84,21 @@ CUR2CONTENT;
 if (!is_file($cur2file)) {
    file_put_contents($cur2file, $cur2content);
 }
+
+
+$cur2file="$docroot/robots.txt";
+$cur2content=
+<<<'CUR2CONTENT'
+User-agent: *
+Disallow:
+
+CUR2CONTENT;
+if (!is_file($cur2file)) {
+   file_put_contents($cur2file, $cur2content);
+}
+
+
+// FOLDERS
 
 $cur2dir="$docroot/party-cache-zyz";
 if (!is_dir($cur2dir)) {
