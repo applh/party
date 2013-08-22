@@ -63,17 +63,39 @@ if (!is_file($cur2file)) {
    file_put_contents($cur2file, $cur2content);
 }
 
+$cur2file="$docroot/party-config.php";
+$cur2content=
+<<<'CUR2CONTENT'
+<?php
+
+global $Party;
+
+// YOUR WEBSITE SETUP
+$Party['src.url.domain']='http://applh.com';
+
+$Party['party.cache.maxsize']=512000;
+$Party['party.cache.maxtime']=3600;
+
+
+CUR2CONTENT;
+if (!is_file($cur2file)) {
+   file_put_contents($cur2file, $cur2content);
+}
+
 $cur2dir="$docroot/party-cache-zyz";
 if (!is_dir($cur2dir)) {
    mkdir($cur2dir);
+   touch("$cur2dir/index.php");
 }
 $cur2dir="$docroot/party-cache-zyz/text";
 if (!is_dir($cur2dir)) {
    mkdir($cur2dir);
+   touch("$cur2dir/index.php");
 }
 $cur2dir="$docroot/party-cache-zyz/image";
 if (!is_dir($cur2dir)) {
    mkdir($cur2dir);
+   touch("$cur2dir/index.php");
 }
 
 
