@@ -92,7 +92,11 @@ if (!function_exists('party_curl')) {
          $cache2req=$Party['party.cache.dir']."/text/$request2md5-req.txt";
       }
       else if ($request2image !== FALSE) {
-         $cache2file=$Party['party.cache.dir']."/image/$request2md5.png";
+         $cache2ext='png';
+         if (!empty($request2ext)) {
+            $cache2ext=$request2ext;
+         }
+         $cache2file=$Party['party.cache.dir']."/image/$request2md5.$cache2ext";
       }
 
       if (!empty($cache2file) && is_file($cache2file)) {
@@ -263,6 +267,7 @@ if (!function_exists('party')) {
 
    }
 }
+
 
 
 
