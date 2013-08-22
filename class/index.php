@@ -154,22 +154,26 @@ if (!function_exists('party_curl')) {
          switch ($request2ext) {
             case 'png':
                header("Content-Type:image/png");
+               header("X-Robots-Tag:noindex");
                echo $result;
                $request2text=false;
                break;
             case 'jpg':
             case 'jpeg':
                header("Content-Type:image/jpeg");
+               header("X-Robots-Tag:noindex");
                echo $result;
                $request2text=false;
                break;
             case 'gif':
                header("Content-Type:image/gif");
+               header("X-Robots-Tag:noindex");
                echo $result;
                $request2text=false;
                break;
             case 'svg':
                header("Content-Type:image/svg+xml");
+               header("X-Robots-Tag:noindex");
                echo $result;
                $request2text=false;
                break;
