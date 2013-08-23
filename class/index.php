@@ -4,7 +4,7 @@ global $Party;
 if (!is_array($Party)) {
    $Party=array();
 
-   $Party['version']=110;
+   $Party['version']=120;
 
    $Party['request.content-type']='';
 
