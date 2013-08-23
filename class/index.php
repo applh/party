@@ -4,7 +4,7 @@ global $Party;
 if (!is_array($Party)) {
    $Party=array();
 
-   $Party['version']=101;
+   $Party['version']=110;
 
    $Party['party.cache.dir']=$_SERVER['DOCUMENT_ROOT'].'/party-cache-zyz';
    $Party['party.cache.maxsize']=51200;
@@ -27,16 +27,134 @@ if (!function_exists('party_debug')) {
    }
 }
 
-if (!function_exists('apache_request_headers')) {
-   function apache_request_headers() {
-      foreach($_SERVER as $key=>$value) {
-         if (substr($key,0,5)=="HTTP_") {
-            $key=str_replace(" ","-",ucwords(strtolower(str_replace("_"," ",substr($key,5)))));
-            $out[$key]=$value;
+if (!function_exists('party_cache_active')) {
+   function party_cache_active ($cache2file) {
+      global $Party;
+      $cache2active=false;
+      if (!empty($cache2file) && is_file($cache2file)) {
+            $cache2mtime=filemtime($cache2file);
+            $now=time();
+            $cache2age=($now - $cache2mtime);
+            if ($cache2age < $Party['party.cache.maxtime']) 
+               $cache2active=true;
+     }
+     return $cache2active;
+   }
+}
+
+if (!function_exists('party_cache_process_fast')) {
+   function party_cache_process_fast () {
+      global $Party;
+
+      $res=false;
+         
+      $request2ext=$Party['party.request.ext'];
+      $cache2md5=$Party['party.cache.md5'];
+      $cache2file='';
+      $cache2active=false;
+
+      switch ($request2ext) {
+         case 'png':
+            $cache2file=$Party['party.cache.dir']."/image/$cache2md5.$request2ext";
+            $cache2active=party_cache_active($cache2file);
+            header("Content-Type:image/png");
+            break;
+         case 'jpg':
+         case 'jpeg':
+            $cache2file=$Party['party.cache.dir']."/image/$cache2md5.$request2ext";
+            $cache2active=party_cache_active($cache2file);
+            header("Content-Type:image/jpeg");
+            break;
+         case 'gif':
+            $cache2file=$Party['party.cache.dir']."/image/$cache2md5.$request2ext";
+            $cache2active=party_cache_active($cache2file);
+            header("Content-Type:image/gif");
+            break;
+         case 'svg':
+            $cache2file=$Party['party.cache.dir']."/image/$cache2md5.$request2ext";
+            $cache2active=party_cache_active($cache2file);
+            header("Content-Type:image/svg+xml");
+            break;
+         case 'pdf':
+            $cache2file=$Party['party.cache.dir']."/image/$cache2md5.$request2ext";
+            $cache2active=party_cache_active($cache2file);
+            header("Content-Type:application/pdf");
+            break;
+         case 'htm':
+         case 'html':
+         case 'css':
+         case 'js':
+         case 'txt':
+            break;
+         default:
+            $cache2file=$Party['party.cache.dir']."/image/$cache2md5.$request2ext";
+            $cache2active=party_cache_active($cache2file);
+            header("Content-Type:application/octet-stream");
+            break;
+      }
+
+      if ($cache2active) {
+         header("X-Robots-Tag:noindex");
+         readfile($cache2file);
+         $res=true;
+      }
+
+      return $res;
+ 
+   }
+}
+
+
+if (!function_exists('party_curl_exec')) {
+   function party_curl_exec ($src2url, $cache2file, $cache2req, $request2serialize) {
+      global $Party;
+            
+      // Création d'une nouvelle ressource cURL
+      $ch = curl_init();
+         
+      if ($ch !== FALSE) {
+         // Configuration of URL and other options
+         $options = array(
+            CURLOPT_URL => $src2url,
+            CURLOPT_HEADER => false,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+         );
+
+         // FORWARD REQUEST DATA
+         if (!empty($_REQUEST)) {
+            $options[CURLOPT_POSTFIELDS]=$_REQUEST;
+         }
+
+         curl_setopt_array($ch, $options);
+
+         // get URL content
+         $Party['response.data']=curl_exec($ch);
+
+         // end of CURL session
+         curl_close($ch);
+
+         // cache data 
+         if (!empty($Party['response.data'])) {
+            $Party['response.curl']=true;
+
+            if (!empty($cache2file)) {
+               if (strlen($result) < $Party['party.cache.maxsize']) {
+                  file_put_contents($cache2file, $Party['response.data']);
+               }
+            }
+            if (!empty($cache2req)) {
+               if (strlen($cache2req) < $Party['party.cache.maxsize']) {
+                  file_put_contents($cache2req, $request2serialize);
+               }
+            }
          }
       }
-      return $out;
-   } 
+      else {
+         party_debug('CURL PROBLEM');
+      }         
+   }
+
 }
 
 if (!function_exists('party_curl')) {
@@ -51,6 +169,8 @@ if (!function_exists('party_curl')) {
       $request2path=$request2parse['path'];
       
       $request2pathinfo=pathinfo($request2path);
+      // FIXME
+      // NEED SOME MORE SECURITY CHECK ?
       $request2ext=strtolower(trim($request2pathinfo['extension']));
       
       // source data
@@ -62,128 +182,65 @@ if (!function_exists('party_curl')) {
 
       $src_url="$src2url2domain$src2uri";
 
-      $headers = apache_request_headers();
-
+      
       // FIXME
       // OVH SPECIAL
       // reset OVH cookies
       if ($Party['hosting'] == 'ovh') {
-         $_REQUEST['start']='';
-         $_REQUEST['startBAK']='';
+         unset($_REQUEST['start']);
+         unset($_REQUEST['startBAK']);
       }
 
       // CACHE HANDLING
       $request2serialize=serialize($src_url)."\n".serialize($_REQUEST);
       $request2md5=md5($request2serialize);
 
-      $request2text=false;
-      $request2image=false;
-
-      $request2text=stripos($headers['Accept'], "text/");
-      if (!$request2text) {
-         $request2image=stripos($headers['Accept'], "image/");
-      }
-
       $cache2active=false;
       $cache2file="";
       $cache2req="";
-      if ($request2text !== FALSE) {
-         $cache2file=$Party['party.cache.dir']."/text/$request2md5.txt";
-         $cache2req=$Party['party.cache.dir']."/text/$request2md5-req.txt";
+      $cache2raw=true;
+
+      $response2fast=false;
+
+      // HIGHWAY FOR SIMPLE FILES 
+      if (!empty($request2ext)) {
+
+         $Party['party.cache.md5']=$request2md5;
+         $Party['party.request.ext']=$request2ext;
+         $response2fast=party_cache_process_fast();
+
       }
-      else if ($request2image !== FALSE) {
-         $cache2ext='png';
-         if (!empty($request2ext)) {
-            $cache2ext=$request2ext;
+
+      $request2text=false;
+      if (!$response2fast) {
+               
+         $request2image=false;
+
+         $header2accept=$_SERVER['HTTP_ACCEPT'];
+         $request2text=stripos($header2accept, "text/");
+         if (!$request2text) {
+            $request2image=stripos($header2accept, "image/");
          }
-         $cache2file=$Party['party.cache.dir']."/image/$request2md5.$cache2ext";
-      }
 
-      if (!empty($cache2file) && is_file($cache2file)) {
-         $cache2mtime=filemtime($cache2file);
-         $now=time();
-         $cache2age=($now - $cache2mtime);
-         if ($cache2age < $Party['party.cache.maxtime']) 
-            $cache2active=true;
-      }
+         if ($request2text !== FALSE) {
+            $cache2file=$Party['party.cache.dir']."/text/$request2md5.txt";
+            $cache2req=$Party['party.cache.dir']."/text/$request2md5-req.txt";
+         }
+         else if ($request2image !== FALSE) {
+            $cache2ext='png';
+            if (!empty($request2ext)) {
+               $cache2ext=$request2ext;
+            }
+            $cache2file=$Party['party.cache.dir']."/image/$request2md5.$cache2ext";
+         }
 
-      if ($cache2active) {
-         $result=file_get_contents($cache2file);
-      }
-      else {
-         // Création d'une nouvelle ressource cURL
-         $ch = curl_init();
+         $cache2active=party_cache_active($cache2file);
          
-         if ($ch !== FALSE) {
-            // Configuration of URL and other options
-            $options = array(
-               CURLOPT_URL => $src_url,
-               CURLOPT_HEADER => false,
-               CURLOPT_RETURNTRANSFER => true,
-               CURLOPT_FOLLOWLOCATION => true,
-               CURLOPT_POSTFIELDS => $_REQUEST,
-            );
-
-            curl_setopt_array($ch, $options);
-
-            // get URL content
-            $result=curl_exec($ch);
-
-            // end of CURL session
-            curl_close($ch);
-            // cache data 
-            if (!empty($cache2file)) {
-               if (strlen($result) < $Party['party.cache.maxsize']) {
-                  file_put_contents($cache2file, $result);
-               }
-            }
-            if (!empty($cache2req)) {
-               if (strlen($cache2req) < $Party['party.cache.maxsize']) {
-                  file_put_contents($cache2req, $request2serialize);
-               }
-            }
- 
+         if ($cache2active) {
+            $Party['response.data']=file_get_contents($cache2file);
          }
          else {
-            party_debug('CURL PROBLEM');
-         }
-         
-     }
-
-      if (!empty($request2ext)) {
-         switch ($request2ext) {
-            case 'png':
-               header("Content-Type:image/png");
-               header("X-Robots-Tag:noindex");
-               echo $result;
-               $request2text=false;
-               break;
-            case 'jpg':
-            case 'jpeg':
-               header("Content-Type:image/jpeg");
-               header("X-Robots-Tag:noindex");
-               echo $result;
-               $request2text=false;
-               break;
-            case 'gif':
-               header("Content-Type:image/gif");
-               header("X-Robots-Tag:noindex");
-               echo $result;
-               $request2text=false;
-               break;
-            case 'svg':
-               header("Content-Type:image/svg+xml");
-               header("X-Robots-Tag:noindex");
-               echo $result;
-               $request2text=false;
-               break;
-            case 'pdf':
-               header("Content-Type:application/pdf");
-               echo $result;
-               $request2text=false;
-               break;
-            default:
-               break;
+            party_curl_exec($src_url, $cache2file, $cache2req, $request2serialize);
          }
       }
 
@@ -195,7 +252,7 @@ if (!function_exists('party_curl')) {
          $from=array_keys($translate);
          $to=array_values($translate);
 
-         $result=str_replace($from, $to, $result);
+         $result=str_replace($from, $to, $Party['response.data']);
 
          if (!empty($request2ext)) {
             switch ($request2ext) {
@@ -226,21 +283,26 @@ if (!function_exists('party_curl')) {
                   break;
             }
          }
-         else if (stripos($headers['Accept'], "text/html") !== FALSE) {
+         else if (stripos($header2accept, "text/html") !== FALSE) {
             header("Content-Type:text/html");
             echo $result;
          }
-         else if (stripos($headers['Accept'], "text/css") !== FALSE) {
+         else if (stripos($header2accept, "text/css") !== FALSE) {
             header("Content-Type:text/css");
             echo $result;
          }
-         else if (stripos($headers['Accept'], "text/javascript") !== FALSE) {
+         else if (stripos($header2accept, "text/javascript") !== FALSE) {
             header("Content-Type:text/javascript");
             echo $result;
          }
       }
+      else if (!empty($Party['response.curl'])) {
+         // forward response from source server
+         echo $Party['response.data'];
+      }
 
    }
+
 }
 
 
