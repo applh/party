@@ -71,7 +71,6 @@ if (!function_exists('party_curl')) {
       $src2uri=$_SERVER['REQUEST_URI'];
 
       $src_url="$src2url2domain$src2uri";
-
       
       // FIXME
       // OVH SPECIAL
@@ -121,8 +120,8 @@ if (!function_exists('party_curl')) {
             }
 
             if ($request2text !== FALSE) {
-               $cache2file=$Party['party.cache.dir']."/text/$request2md5.txt";
-               $cache2req=$Party['party.cache.dir']."/text/$request2md5-req.txt";
+               $cache2ext='txt';
+               $cache2file=$Party['party.cache.dir']."/$request2md5.$cache2ext";
 
                // FIXME
                // TODO: don't check twice
@@ -134,14 +133,15 @@ if (!function_exists('party_curl')) {
                   $cache2ext=$request2ext;
                }
 
-               $cache2file=$Party['party.cache.dir']."/image/$request2md5.$cache2ext";
-               $cache2req=$Party['party.cache.dir']."/image/$request2md5-req.txt";
+               $cache2file=$Party['party.cache.dir']."/$request2md5.$cache2ext";
             }
          
             if ($cache2active) {
                $Party['response.data']=file_get_contents($cache2file);
             }
             else {
+               $cache2req=$Party['party.cache.dir']."/$request2md5-req.txt";
+
                include_once(__DIR__.'/inc-curl.php');
                party_curl_exec($src_url, $cache2file, $cache2req, $request2serialize);
             }
@@ -173,6 +173,13 @@ if (!function_exists('party_curl')) {
             header("Content-Type:text/javascript");
          }
 
+         // SAVE UPDATED CONTENT
+         if (!empty($cache2file)) {
+            if (strlen($result) < $Party['party.cache.maxsize']) {
+               file_put_contents($cache2file, $result);
+            }
+         }
+ 
          // return modified text
          echo $result;
       }

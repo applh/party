@@ -105,17 +105,6 @@ if (!is_dir($cur2dir)) {
    mkdir($cur2dir);
    touch("$cur2dir/index.php");
 }
-$cur2dir="$docroot/party-cache-zyz/text";
-if (!is_dir($cur2dir)) {
-   mkdir($cur2dir);
-   touch("$cur2dir/index.php");
-}
-$cur2dir="$docroot/party-cache-zyz/image";
-if (!is_dir($cur2dir)) {
-   mkdir($cur2dir);
-   touch("$cur2dir/index.php");
-}
-
 
 ?>
 <!DOCTYPE html>
