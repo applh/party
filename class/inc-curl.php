@@ -38,8 +38,9 @@ if (!function_exists('party_curl_exec')) {
                   file_put_contents($cache2file, $Party['response.data']);
                }
             }
+
             if (!empty($cache2req)) {
-               if (strlen($cache2req) < $Party['party.cache.maxsize']) {
+               if (strlen($request2serialize) < $Party['party.cache.maxsize']) {
                   file_put_contents($cache2req, $request2serialize);
                }
             }

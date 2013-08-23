@@ -12,7 +12,7 @@ if (!is_array($Party)) {
    $Party['party.cache.maxsize']=51200;
    $Party['party.cache.maxtime']=3600;
 
-   $Party['party.debug']=0;
+   $Party['party.debug']=10;
 
    // USER CONFIG
    $Party['hosting']='ovh';
@@ -84,15 +84,9 @@ if (!function_exists('party_curl')) {
       $request2serialize=serialize($src_url)."\n".serialize($_REQUEST);
       $request2md5=md5($request2serialize);
 
-      $cache2active=false;
-      $cache2file="";
-      $cache2req="";
-      $cache2raw=true;
-
       $response2fast=false;
-
-      // HIGHWAY FOR SIMPLE FILES 
       if (!empty($request2ext)) {
+         // HIGHWAY FOR SIMPLE FILES 
 
          $Party['party.cache.md5']=$request2md5;
          $Party['party.request.ext']=$request2ext;
@@ -102,90 +96,31 @@ if (!function_exists('party_curl')) {
 
       }
 
-      $request2text=false;
       if (!$response2fast) {
-               
-         $header2accept=$_SERVER['HTTP_ACCEPT'];
-         $request2image=false;
+         // CACHE IS NOT READY
+         // STANDARD PROCESS
+         $proxy2translate=false;
 
-         if (!empty($Party['request.content-type'])) {
-               $header2accept=$Party['request.content-type'];
+         include_once(__DIR__.'/inc-proxy.php');
+         party_proxy($src_url, $request2md5, $request2serialize);
+
+         if (!empty($Party['proxy.translate'])) {
+            $proxy2translate=$Party['proxy.translate'];
          }
 
-         if ($header2accept) {
+         if ($proxy2translate !== false) {
 
-            $request2text=stripos($header2accept, "text/");
-            if (!$request2text) {
-               $request2image=stripos($header2accept, "image/");
-            }
+            include_once(__DIR__.'/inc-proxy-translate.php');
+            party_proxy_translate();
 
-            if ($request2text !== FALSE) {
-               $cache2ext='txt';
-               $cache2file=$Party['party.cache.dir']."/$request2md5.$cache2ext";
-
-               // FIXME
-               // TODO: don't check twice
-               $cache2active=party_cache_active($cache2file);
-            }
-            else if ($request2image !== FALSE) {
-               $cache2ext='prt';
-               if (!empty($request2ext)) {
-                  $cache2ext=$request2ext;
-               }
-
-               $cache2file=$Party['party.cache.dir']."/$request2md5.$cache2ext";
-            }
-         
-            if ($cache2active) {
-               $Party['response.data']=file_get_contents($cache2file);
-            }
-            else {
-               $cache2req=$Party['party.cache.dir']."/$request2md5-req.txt";
-
-               include_once(__DIR__.'/inc-curl.php');
-               party_curl_exec($src_url, $cache2file, $cache2req, $request2serialize);
-            }
- 
+            // return modified text
+            echo $Party['response.result'];
+         }
+         else if (!empty($Party['response.curl'])) {
+            // forward response from source server
+            echo $Party['response.data'];
          }
 
-      }
-
-      if ($request2text !== false) {
-
-         $translate=array();
-         // replace domain name
-         $translate[$src2url2domain]="http://".$_SERVER['SERVER_NAME'];
-
-         $from=array_keys($translate);
-         $to=array_values($translate);
-         $result=str_replace($from, $to, $Party['response.data']);
-
-         if (!empty($request2ext)) {
-            // FIXME
-         }
-         else if (stripos($header2accept, "text/html") !== FALSE) {
-            header("Content-Type:text/html");
-         }
-         else if (stripos($header2accept, "text/css") !== FALSE) {
-            header("Content-Type:text/css");
-         }
-         else if (stripos($header2accept, "text/javascript") !== FALSE) {
-            header("Content-Type:text/javascript");
-         }
-
-         // SAVE UPDATED CONTENT
-         if (!empty($cache2file)) {
-            if (strlen($result) < $Party['party.cache.maxsize']) {
-               file_put_contents($cache2file, $result);
-            }
-         }
- 
-         // return modified text
-         echo $result;
-      }
-      else if (!empty($Party['response.curl'])) {
-         // forward response from source server
-         echo $Party['response.data'];
       }
 
    }
@@ -193,10 +128,11 @@ if (!function_exists('party_curl')) {
 }
 
 
+
 if (!function_exists('party')) {
    function party () {
       // FIXME
-      $party2config=dirname(dirname(__DIR__))."/party-config.php";
+      $party2config=$_SERVER['DOCUMENT_ROOT']."/party-config.php";
       if (file_exists($party2config)) {
          include($party2config);
       }
@@ -204,7 +140,6 @@ if (!function_exists('party')) {
       party_curl();
    }
 }
-
 
 // DEV
 if (!function_exists('party')) {
@@ -220,6 +155,7 @@ if (!function_exists('party')) {
 
    }
 }
+
 
 
 
