@@ -153,28 +153,28 @@ if (!function_exists('party_curl')) {
       if ($request2text !== false) {
 
          $translate=array();
+         // replace domain name
          $translate[$src2url2domain]="http://".$_SERVER['SERVER_NAME'];
 
          $from=array_keys($translate);
          $to=array_values($translate);
-
          $result=str_replace($from, $to, $Party['response.data']);
 
          if (!empty($request2ext)) {
-            echo $result;
+            // FIXME
          }
          else if (stripos($header2accept, "text/html") !== FALSE) {
             header("Content-Type:text/html");
-            echo $result;
          }
          else if (stripos($header2accept, "text/css") !== FALSE) {
             header("Content-Type:text/css");
-            echo $result;
          }
          else if (stripos($header2accept, "text/javascript") !== FALSE) {
             header("Content-Type:text/javascript");
-            echo $result;
          }
+
+         // return modified text
+         echo $result;
       }
       else if (!empty($Party['response.curl'])) {
          // forward response from source server
