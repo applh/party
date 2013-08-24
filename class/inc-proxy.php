@@ -28,6 +28,7 @@ if (!function_exists('party_proxy')) {
                $cache2ext='png';
             }
 
+            $request2ext=$Party['party.request.ext'];
             if (!empty($request2ext)) {
                $cache2ext=$request2ext;
             }
@@ -48,5 +49,6 @@ if (!function_exists('party_proxy')) {
    }
 
 }
+
 
 
