@@ -60,7 +60,7 @@ if (!function_exists('party_curl')) {
       // NEED SOME MORE SECURITY CHECK ?
       $request2ext=strtolower(trim($request2pathinfo['extension']));
       if ($request2ext == 'php') {
-         $request2ext = '';
+         $request2ext = 'prt';
       }
       
       // source data
@@ -155,6 +155,7 @@ if (!function_exists('party')) {
 
    }
 }
+
 
 
 
