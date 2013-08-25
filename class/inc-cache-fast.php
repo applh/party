@@ -1,5 +1,21 @@
 <?php
 
+if (!function_exists('party_cache_active')) {
+   function party_cache_active ($cache2file) {
+      global $Party;
+      $cache2active=false;
+      if (!empty($cache2file) && is_file($cache2file)) {
+            $cache2mtime=filemtime($cache2file);
+            $now=time();
+            $cache2age=($now - $cache2mtime);
+            if ($cache2age < $Party['party.cache.maxtime']) 
+               $cache2active=true;
+     }
+     return $cache2active;
+   }
+}
+
+
 if (!function_exists('party_cache_process_fast')) {
    function party_cache_process_fast () {
       global $Party;
@@ -49,8 +65,6 @@ if (!function_exists('party_cache_process_fast')) {
             break;
             break;
          default:
-            if (empty($request2ext)) 
-               $request2ext='prt';
             header("Content-Type:application/octet-stream");
             break;
       }
@@ -58,7 +72,7 @@ if (!function_exists('party_cache_process_fast')) {
       $cache2active=false;
       if ($request2ext) {
          $cache2md5=$Party['party.cache.md5'];
-         $cache2file=$Party['party.cache.dir']."/$cache2md5.$request2ext";
+         $cache2file=$Party['party.cache.dir']."/$cache2md5.".$Party['party.cache.ext'];
          $cache2active=party_cache_active($cache2file);
       }
 

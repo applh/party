@@ -21,21 +21,15 @@ if (!function_exists('party_proxy')) {
             }
 
             if ($request2text !== FALSE) {
-               $cache2ext='txt';
                $Party['proxy.translate']=true;
             }
             else if ($request2image !== FALSE) {
-               $cache2ext='png';
+               $Party['proxy.translate']=false;
             }
 
-            $request2ext=$Party['party.request.ext'];
-            if (!empty($request2ext)) {
-               $cache2ext=$request2ext;
-            }
-         
             if (!empty($src2url)) {
                $cache2req=$Party['party.cache.dir']."/$request2md5-req.txt";
-               $cache2file=$Party['party.cache.dir']."/$request2md5.$cache2ext";
+               $cache2file=$Party['party.cache.dir']."/$request2md5.".$Party['party.cache.ext'];
 
                $Party['proxy.cache.file']=$cache2file;
 

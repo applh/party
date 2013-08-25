@@ -9,7 +9,8 @@ if (!is_array($Party)) {
    $Party['request.content-type']='';
 
    $Party['party.cache.dir']=$_SERVER['DOCUMENT_ROOT'].'/party-cache-zyz';
-   $Party['party.cache.maxsize']=51200;
+   $Party['party.cache.ext']='prt';
+   $Party['party.cache.maxsize']=512000;
    $Party['party.cache.maxtime']=3600;
 
    $Party['party.debug']=10;
@@ -29,21 +30,6 @@ if (!function_exists('party_debug')) {
    }
 }
 
-if (!function_exists('party_cache_active')) {
-   function party_cache_active ($cache2file) {
-      global $Party;
-      $cache2active=false;
-      if (!empty($cache2file) && is_file($cache2file)) {
-            $cache2mtime=filemtime($cache2file);
-            $now=time();
-            $cache2age=($now - $cache2mtime);
-            if ($cache2age < $Party['party.cache.maxtime']) 
-               $cache2active=true;
-     }
-     return $cache2active;
-   }
-}
-
 if (!function_exists('party_curl')) {
    function party_curl () {
 
@@ -59,9 +45,6 @@ if (!function_exists('party_curl')) {
       // FIXME
       // NEED SOME MORE SECURITY CHECK ?
       $request2ext=strtolower(trim($request2pathinfo['extension']));
-      if ($request2ext == 'php') {
-         $request2ext = 'prt';
-      }
       
       // source data
       $src2url2domain=$Party['src.url.domain'];
