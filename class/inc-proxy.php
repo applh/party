@@ -27,15 +27,8 @@ if (!function_exists('party_proxy')) {
                $Party['proxy.translate']=false;
             }
 
-            if (!empty($src2url)) {
-               $cache2req=$Party['party.cache.dir']."/$request2md5-req.txt";
-               $cache2file=$Party['party.cache.dir']."/$request2md5.".$Party['party.cache.ext'];
-
-               $Party['proxy.cache.file']=$cache2file;
-
-               include_once(__DIR__.'/inc-curl.php');
-               party_curl_exec($src2url, $cache2file, $cache2req, $request2serialize);
-            }
+            include_once(__DIR__.'/inc-curl.php');
+            party_curl_exec($src2url, $request2serialize);
  
          }
       }

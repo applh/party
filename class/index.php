@@ -4,7 +4,7 @@ global $Party;
 if (!is_array($Party)) {
    $Party=array();
 
-   $Party['version']=120;
+   $Party['version']=121;
 
    $Party['request.content-type']='';
 
@@ -45,6 +45,7 @@ if (!function_exists('party_curl')) {
       // FIXME
       // NEED SOME MORE SECURITY CHECK ?
       $request2ext=strtolower(trim($request2pathinfo['extension']));
+      $request2basename=trim($request2pathinfo['basename']);
       
       // source data
       $src2url2domain=$Party['src.url.domain'];
@@ -63,20 +64,21 @@ if (!function_exists('party_curl')) {
          unset($_REQUEST['startBAK']);
       }
 
+      $Party['party.request.basename']=$request2basename;
+      $Party['party.request.ext']=$request2ext;
+
       // CACHE HANDLING
       $request2serialize=serialize($src_url)."\n".serialize($_REQUEST);
       $request2md5=md5($request2serialize);
 
+      $Party['party.cache.md5']=$request2md5;
+      $Party['party.cache.file']=$Party['party.cache.dir']."/$request2md5.".$Party['party.cache.ext'];
+ 
       $response2fast=false;
-      if (!empty($request2ext)) {
+      if (!empty($request2ext) || empty($request2basename)) {
          // HIGHWAY FOR SIMPLE FILES 
-
-         $Party['party.cache.md5']=$request2md5;
-         $Party['party.request.ext']=$request2ext;
-
          include_once(__DIR__.'/inc-cache-fast.php');
          $response2fast=party_cache_process_fast();
-
       }
 
       if (!$response2fast) {

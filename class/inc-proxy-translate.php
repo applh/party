@@ -4,10 +4,10 @@ if (!function_exists('party_proxy_translate')) {
    function party_proxy_translate () {
       global $Party;
 
-      $cache2file=$Party['proxy.cache.file'];
-      $header2accept=$Party['proxy.header.accept'];
-
       if (!empty($Party['response.data'])) {
+      
+         $cache2file=$Party['proxy.cache.file'];
+         $header2accept=$Party['proxy.header.accept'];
 
          $src2url2domain=$Party['src.url.domain'];
 

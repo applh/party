@@ -1,7 +1,7 @@
 <?php
 
 if (!function_exists('party_curl_exec')) {
-   function party_curl_exec ($src2url, $cache2file, $cache2req, $request2serialize) {
+   function party_curl_exec ($src2url, $request2serialize) {
       global $Party;
             
       // Création d'une nouvelle ressource cURL
@@ -33,9 +33,15 @@ if (!function_exists('party_curl_exec')) {
          if (!empty($Party['response.data'])) {
             $Party['response.curl']=true;
 
+            $cache2req=$Party['party.cache.dir']."/$request2md5-req.txt";
+            $cache2file=$Party['party.cache.file'];
+
             if (!empty($cache2file)) {
                if (strlen($Party['response.data']) < $Party['party.cache.maxsize']) {
                   file_put_contents($cache2file, $Party['response.data']);
+
+                  $Party['proxy.cache.file']=$cache2file;
+                  
                }
             }
 

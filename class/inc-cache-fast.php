@@ -8,8 +8,10 @@ if (!function_exists('party_cache_active')) {
             $cache2mtime=filemtime($cache2file);
             $now=time();
             $cache2age=($now - $cache2mtime);
-            if ($cache2age < $Party['party.cache.maxtime']) 
-               $cache2active=true;
+            if ($cache2age < $Party['party.cache.maxtime']) {
+               if (0 < filesize($cache2file))
+                  $cache2active=true;
+            }
      }
      return $cache2active;
    }
@@ -23,23 +25,35 @@ if (!function_exists('party_cache_process_fast')) {
       $res=false;
          
       $request2ext=$Party['party.request.ext'];
+      $request2basename=$Party['party.request.basename'];
 
-      switch ($request2ext) {
+      if (empty($request2basename)) {
+         // FIXME
+         // Consider URI ending with / as webpages
+         header("Content-Type:text/html");
+         $Party['request.content-type']="text/html";
+      }
+      else {
+         switch ($request2ext) {
          case 'png':
             header("Content-Type:image/png");
+            header("X-Robots-Tag:noindex");
             $Party['request.content-type']="image/png";
             break;
-         case 'jpg':
+            case 'jpg':
          case 'jpeg':
             header("Content-Type:image/jpeg");
+            header("X-Robots-Tag:noindex");
             $Party['request.content-type']="image/jpeg";
             break;
          case 'gif':
             header("Content-Type:image/gif");
+            header("X-Robots-Tag:noindex");
             $Party['request.content-type']="image/gif";
             break;
          case 'svg':
             header("Content-Type:image/svg+xml");
+            header("X-Robots-Tag:noindex");
             $Party['request.content-type']="image/svg+xml";
             break;
          case 'pdf':
@@ -53,10 +67,12 @@ if (!function_exists('party_cache_process_fast')) {
             break;
          case 'css':
             header("Content-Type:text/css");
+            header("X-Robots-Tag:noindex");
             $Party['request.content-type']="text/css";
             break;
          case 'js':
             header("Content-Type:text/javascript");
+            header("X-Robots-Tag:noindex");
             $Party['request.content-type']="text/javascript";
             break;
          case 'txt':
@@ -67,17 +83,13 @@ if (!function_exists('party_cache_process_fast')) {
          default:
             header("Content-Type:application/octet-stream");
             break;
+         }
       }
 
-      $cache2active=false;
-      if ($request2ext) {
-         $cache2md5=$Party['party.cache.md5'];
-         $cache2file=$Party['party.cache.dir']."/$cache2md5.".$Party['party.cache.ext'];
-         $cache2active=party_cache_active($cache2file);
-      }
+      $cache2file=$Party['party.cache.file'];
+      $cache2active=party_cache_active($cache2file);
 
       if ($cache2active) {
-         header("X-Robots-Tag:noindex");
          readfile($cache2file);
          $res=true;
       }
