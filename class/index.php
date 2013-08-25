@@ -73,6 +73,7 @@ if (!function_exists('party_curl')) {
 
       $Party['party.cache.md5']=$request2md5;
       $Party['party.cache.file']=$Party['party.cache.dir']."/$request2md5.".$Party['party.cache.ext'];
+      $Party['party.cache.request']=$Party['party.cache.dir']."/$request2md5-req.txt";
  
       $response2fast=false;
       if (!empty($request2ext) || empty($request2basename)) {
@@ -84,27 +85,8 @@ if (!function_exists('party_curl')) {
       if (!$response2fast) {
          // CACHE IS NOT READY
          // STANDARD PROCESS
-         $proxy2translate=false;
-
          include_once(__DIR__.'/inc-proxy.php');
          party_proxy($src_url, $request2md5, $request2serialize);
-
-         if (!empty($Party['proxy.translate'])) {
-            $proxy2translate=$Party['proxy.translate'];
-         }
-
-         if ($proxy2translate !== false) {
-
-            include_once(__DIR__.'/inc-proxy-translate.php');
-            party_proxy_translate();
-
-            // return modified text
-            echo $Party['response.result'];
-         }
-         else if (!empty($Party['response.curl'])) {
-            // forward response from source server
-            echo $Party['response.data'];
-         }
 
       }
 

@@ -32,7 +32,25 @@ if (!function_exists('party_proxy')) {
  
          }
       }
- 
+
+      $proxy2translate=false;
+      if (!empty($Party['proxy.translate'])) {
+         $proxy2translate=$Party['proxy.translate'];
+      }
+
+      if ($proxy2translate !== false) {
+
+         include_once(__DIR__.'/inc-proxy-translate.php');
+         party_proxy_translate();
+
+         // return modified text
+         echo $Party['response.result'];
+      }
+      else if (!empty($Party['response.curl'])) {
+         // forward response from source server
+         echo $Party['response.data'];
+      }
+
    }
 
 }

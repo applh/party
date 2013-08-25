@@ -33,7 +33,7 @@ if (!function_exists('party_curl_exec')) {
          if (!empty($Party['response.data'])) {
             $Party['response.curl']=true;
 
-            $cache2req=$Party['party.cache.dir']."/$request2md5-req.txt";
+            $cache2req=$Party['party.cache.request'];
             $cache2file=$Party['party.cache.file'];
 
             if (!empty($cache2file)) {

@@ -15,6 +15,10 @@ if (!function_exists('party_proxy_translate')) {
          // replace domain name
          $translate[$src2url2domain]="http://".$_SERVER['SERVER_NAME'];
 
+         if (is_array($Party['replace'])) {
+            $translate = $Party['replace'] + $translate; 
+         }
+
          $from=array_keys($translate);
          $to=array_values($translate);
 
