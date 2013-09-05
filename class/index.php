@@ -44,7 +44,10 @@ if (!function_exists('party_curl')) {
       $request2pathinfo=pathinfo($request2path);
       // FIXME
       // NEED SOME MORE SECURITY CHECK ?
-      $request2ext=strtolower(trim($request2pathinfo['extension']));
+      $request2ext='';
+      if (isset($request2pathinfo['extension'])) {
+         $request2ext=strtolower(trim($request2pathinfo['extension']));
+      }
       $request2basename=trim($request2pathinfo['basename']);
       
       // source data
