@@ -26,6 +26,13 @@ if (!function_exists('party_curl_exec')) {
          // get URL content
          $Party['response.data']=curl_exec($ch);
 
+         // get the response content-type
+         $response_content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+         $request2text=stripos($response_content_type, "text/");
+         if ($request2text !== FALSE) {
+            $Party['proxy.translate']=true;
+         }
+
          // end of CURL session
          curl_close($ch);
 
